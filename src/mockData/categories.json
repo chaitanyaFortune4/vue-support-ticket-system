@@ -1,0 +1,20 @@
+{
+  "categories": [
+    {
+      "name": "Electronics",
+      "subcategories": ["Mobile Phones", "Laptops", "Tablets"]
+    },
+    {
+      "name": "Clothing",
+      "subcategories": ["Men's", "Women's", "Kids"]
+    },
+    {
+      "name": "Books",
+      "subcategories": ["Fiction", "Non-fiction", "Science Fiction"]
+    },
+    {
+      "name": "Home & Kitchen",
+      "subcategories": ["Appliances", "Furniture", "Cookware"]
+    }
+  ]
+}
