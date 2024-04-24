@@ -1,20 +1,39 @@
 {
-  "categories": [
+  "severity": [
     {
-      "name": "Electronics",
-      "subcategories": ["Mobile Phones", "Laptops", "Tablets"]
+      "name": "Very High",
+      "categories": [
+        {
+          "name": "Hardware",
+          "subCategories": ["Desktop", "Laptop", "Server"]
+        },
+        {
+          "name": "Software",
+          "subCategories": ["Operating System", "Applications"]
+        }
+      ]
     },
     {
-      "name": "Clothing",
-      "subcategories": ["Men's", "Women's", "Kids"]
+      "name": "High",
+      "categories": [
+        {
+          "name": "Network",
+          "subCategories": ["Wired", "Wireless"]
+        },
+        {
+          "name": "Security",
+          "subCategories": ["Firewall", "Antivirus"]
+        }
+      ]
     },
     {
-      "name": "Books",
-      "subcategories": ["Fiction", "Non-fiction", "Science Fiction"]
-    },
-    {
-      "name": "Home & Kitchen",
-      "subcategories": ["Appliances", "Furniture", "Cookware"]
+      "name": "Normal",
+      "categories": [
+        {
+          "name": "General",
+          "subCategories": ["Other"]
+        }
+      ]
     }
   ]
 }
