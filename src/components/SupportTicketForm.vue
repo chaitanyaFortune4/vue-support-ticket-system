@@ -3,14 +3,19 @@ import useVuelidate from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
 import { reactive, ref, watch } from "vue";
 import categoriesJson from "../mockData/categories.json";
+import { createTicket } from "@/composables/apiService";
 
 const heading = "Support Ticket Form";
+const isLoading = ref(false);
+const error = ref(null);
 const formValues = reactive({
+  user_id: "1",
   title: "",
   description: "",
   severity: "",
   category: "",
   subCategory: "",
+  assetId: "",
 });
 
 const rules = {
@@ -57,11 +62,23 @@ watch(
 async function onSubmitHandler(e) {
   e.preventDefault();
   const isFormValid = await v$.value.$validate();
-
   if (!isFormValid) {
     return;
   }
   console.log("Data", formValues);
+  const createTicketRes = await createTicket(formValues);
+  console.log("createTicketRes", createTicketRes);
+  isLoading.value = true;
+  try {
+    const createTicketRes = await createTicket(formValues); // Pass any required payload
+    if (createTicketRes.data.success) {
+      alert(`${createTicketRes.data.message}`);
+    }
+  } catch (err) {
+    error.value = err.message || "Error creating ticket";
+  } finally {
+    isLoading.value = false;
+  }
 }
 </script>
 
@@ -145,7 +162,27 @@ async function onSubmitHandler(e) {
         >
       </div>
 
-      <button type="submit" class="btn btn-primary">Create</button>
+      <div>
+        <label class="form-label" for="title">Asset-Id:</label>
+        <input
+          class="form-control"
+          type="text"
+          id="assetId"
+          name="assetId"
+          v-model="formValues.assetId"
+        />
+        <!-- <span class="font" v-if="v$.title.$error">Title is required</span> -->
+      </div>
+
+      <button type="submit" class="btn btn-primary" :disabled="isLoading">
+        <span
+          v-if="isLoading"
+          class="spinner-border spinner-border-sm"
+          role="status"
+          aria-hidden="true"
+        ></span>
+        Create
+      </button>
     </form>
   </div>
 </template>
@@ -154,9 +191,5 @@ async function onSubmitHandler(e) {
 .formContainer {
   /* border: 1px solid red; */
   max-width: 500px;
-}
-
-.font {
-  color: red;
 }
 </style>
