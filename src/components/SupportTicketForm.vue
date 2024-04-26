@@ -36,7 +36,7 @@ const subCategories = ref([]);
 
 watch(
   () => formValues.severity,
-  (newValue, oldValue) => {
+  (newValue) => {
     const selectedSeverity = severityLevels.find(
       (severity) => severity.name === newValue
     );
@@ -50,7 +50,7 @@ watch(
 
 watch(
   () => formValues.category,
-  (newValue, oldValue) => {
+  (newValue) => {
     const selectedCategory = categories.value.find(
       (category) => category.name === newValue
     );
