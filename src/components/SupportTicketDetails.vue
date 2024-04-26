@@ -131,7 +131,14 @@ async function onSubmitHandler(e) {
         v-on:submit="onSubmitHandler"
       >
         <div class="d-flex justify-content-end">
-          <div class="badge rounded-pill text-bg-danger customStatus">
+          <div
+            class="badge rounded-pill customStatus"
+            :class="
+              formValues.status === 'Closed'
+                ? 'text-bg-danger'
+                : 'text-bg-warning'
+            "
+          >
             {{ formValues.status }}
           </div>
         </div>
