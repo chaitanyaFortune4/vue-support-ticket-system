@@ -1,7 +1,8 @@
 <script setup>
-import { getAllTicket } from "@/composables/apiService";
+import { getAllTicket } from "@/composables/ticketApis";
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import userData from "../mockData/userDetails.json";
 
 let router = useRouter();
 
@@ -12,7 +13,7 @@ const error = ref(null);
 
 async function fetchData() {
   const payload = {
-    user_id: "1",
+    userId: userData.userId,
   };
   isLoading.value = true;
   try {
@@ -35,9 +36,8 @@ async function fetchData() {
 
 fetchData(); // Call fetchData when component is mounted
 
-function viewDetails(user_id) {
-  console.log("UID", user_id);
-  router.push({ name: "ticket-details", params: { id: user_id } });
+function viewDetails(ticketId) {
+  router.push({ name: "ticket-details", params: { id: ticketId } });
 }
 </script>
 
@@ -67,13 +67,10 @@ function viewDetails(user_id) {
             <td>{{ ticket.title }}</td>
             <td>{{ ticket.category }}</td>
             <td>{{ ticket.severity }}</td>
-            <td>Open</td>
+            <td>{{ ticket.status }}</td>
 
             <td>
-              <button
-                class="btn btn-primary"
-                @click="viewDetails(ticket.user_id)"
-              >
+              <button class="btn btn-primary" @click="viewDetails(ticket.id)">
                 View Details
               </button>
             </td>

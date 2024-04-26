@@ -15,12 +15,12 @@ const router = createRouter({
       component: SupportTicketForm,
     },
     {
-      path: "/ticket-list/:id",
+      path: "/ticket-list",
       name: "ticket-list",
       component: SupportTicketList,
     },
     {
-      path: "/ticket/:id",
+      path: "/ticket-details/:id",
       name: "ticket-details",
       component: SupportTicketDetails,
     },

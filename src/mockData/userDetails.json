@@ -1,0 +1,26 @@
+{
+  "userId": "IT01",
+  "totalAssetsCount": "5",
+  "assets": [
+    {
+      "assetName": "CPU",
+      "assetId": "F4-Mumbai-CPU-09"
+    },
+    {
+      "assetName": "Monitor",
+      "assetId": "F4-Mumbai-Monitor-09"
+    },
+    {
+      "assetName": "Keyboard",
+      "assetId": "F4-Mumbai-Keyboard-09"
+    },
+    {
+      "assetName": "Mouse",
+      "assetId": "F4-Mumbai-Mouse-09"
+    },
+    {
+      "assetName": "Headphone",
+      "assetId": "F4-Mumbai-Headphone-09"
+    }
+  ]
+}

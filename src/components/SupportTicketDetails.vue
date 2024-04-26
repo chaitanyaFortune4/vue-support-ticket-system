@@ -3,198 +3,274 @@ import useVuelidate from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
 import { reactive, ref, watch } from "vue";
 import categoriesJson from "../mockData/categories.json";
+import { useRoute, useRouter } from "vue-router";
+import {
+  getTicketByTicketId,
+  submitTicketApproval,
+} from "@/composables/ticketApis";
+import userDataJson from "../mockData/userDetails.json";
 
 const heading = "Ticket Details";
 const formValues = reactive({
-  title: "Keyboard not working",
-  description: "Keyboard some buttons not working ",
-  severity: "Very High",
-  category: "Hardware",
-  subCategory: "keyboard",
+  title: "",
+  description: "",
+  severity: "",
+  category: "",
+  subCategory: "",
+  assetId: "",
   rootCause: "",
   approvalFor: "",
   remarks: "",
+  status: "",
 });
 
-// const rules = {
-//   title: { required },
-//   description: { required },
-//   severity: { required },
-//   category: { required },
-//   subCategory: { required },
-// };
+const isLoading = ref(false);
+const isBtnLoadingWrapper = ref(false);
+const isApprovalBtnLoading = ref(false);
+const isCloseTicketBtnLoading = ref(false);
+const error = ref(null);
+let router = useRouter();
+let route = useRoute();
+let { id } = route.params;
 
-// const v$ = useVuelidate(rules, formValues);
-
-// const severityLevels = categoriesJson.severity;
-// const categories = ref([]);
-// const subCategories = ref([]);
-
-// watch(
-//   () => formValues.severity,
-//   (newValue, oldValue) => {
-//     const selectedSeverity = severityLevels.find(
-//       (severity) => severity.name === newValue
-//     );
-//     if (selectedSeverity) {
-//       categories.value = selectedSeverity.categories;
-//       formValues.category = ""; // Reset category on severity change
-//       formValues.subCategory = ""; // Reset subcategory on severity change
-//     }
-//   }
-// );
-
-// watch(
-//   () => formValues.category,
-//   (newValue, oldValue) => {
-//     const selectedCategory = categories.value.find(
-//       (category) => category.name === newValue
-//     );
-//     if (selectedCategory) {
-//       subCategories.value = selectedCategory.subCategories;
-//       formValues.subCategory = ""; // Reset subcategory on category change
-//     }
-//   }
-// );
+async function fetchTicketData() {
+  const payload = {
+    id: id,
+    userId: userDataJson.userId,
+  };
+  isLoading.value = true;
+  try {
+    const getTicketByTicketIdRes = await getTicketByTicketId(payload); // Pass any required payload
+    console.log("getTicketByTicketIdRes", getTicketByTicketIdRes);
+    if (getTicketByTicketIdRes.data.success) {
+      ({
+        title: formValues.title,
+        description: formValues.description,
+        severity: formValues.severity,
+        category: formValues.category,
+        subCategory: formValues.subCategory,
+        assetId: formValues.assetId,
+        rootCause: formValues.rootCause,
+        approvalFor: formValues.approvalFor,
+        remarks: formValues.remarks,
+        status: formValues.status,
+        assignedTo: formValues.assignedTo,
+        createdBy: formValues.createdBy,
+        userId: formValues.userId,
+      } = getTicketByTicketIdRes.data.data);
+    } else {
+      router.push("/");
+      error.value =
+        getTicketByTicketIdRes.data.message ||
+        getTicketByTicketIdRes.data.error ||
+        "Something went wrong, Please try again later";
+    }
+  } catch (error) {
+    error.value = error.message || "Error fetching ticket data";
+  } finally {
+    isLoading.value = false;
+  }
+}
+fetchTicketData();
 
 async function onSubmitHandler(e) {
   e.preventDefault();
-  // const isFormValid = await v$.value.$validate();
+  isBtnLoadingWrapper.value = true; // disable both buttons
+  console.log("event", e.submitter.name);
 
-  // if (!isFormValid) {
-  //   return;
-  // }
-  // console.log("Data", formValues);
+  if (e.submitter.name === "approvalBtn") {
+    isApprovalBtnLoading.value = true;
+  } else {
+    isCloseTicketBtnLoading.value = true;
+  }
+
+  try {
+    const payload = {
+      id: id,
+      createdBy: formValues.createdBy,
+      userId: formValues.userId,
+      rootCause: formValues.rootCause,
+      approvalFor: formValues.approvalFor,
+      remarks: formValues.remarks,
+      closeTicket: isCloseTicketBtnLoading.value,
+    };
+    const submitTicketApprovalRes = await submitTicketApproval(payload); // Pass any required payload
+
+    if (submitTicketApprovalRes.data.success) {
+      alert(`${submitTicketApprovalRes.data.message}`);
+    }
+  } catch (err) {
+    error.value = err.message || "Error submiting ticket";
+  } finally {
+    isBtnLoadingWrapper.value = false;
+    isApprovalBtnLoading.value = false;
+    isCloseTicketBtnLoading.value = false;
+  }
 }
 </script>
 
 <template>
-  <div class="container-lg d-flex flex-column align-items-center row-gap-3">
-    <div>
-      <h1>{{ heading }}</h1>
-    </div>
-    <form
-      class="p-3 w-100 d-flex flex-column row-gap-2 shadow-lg"
-      v-on:submit="onSubmitHandler"
+  <div v-if="isLoading">Loading...</div>
+  <div v-else-if="error">{{ error }}</div>
+
+  <div v-else>
+    <div
+      class="container-lg d-flex flex-column align-items-center row-gap-3 mb-5"
     >
-      <div class="d-flex justify-content-end">
-        <!-- <input
-          class="form-control"
-          type="text"
-          id="title"
-          name="title"
-          v-model="formValues.title"
-          v-bind:disabled="true"
-        /> -->
-        <button class="btn btn-danger">Open</button>
-      </div>
       <div>
-        <label class="form-label" for="title">Title:</label>
-        <input
-          class="form-control"
-          type="text"
-          id="title"
-          name="title"
-          v-model="formValues.title"
-          v-bind:disabled="true"
-        />
+        <h1>{{ heading }}</h1>
       </div>
+      <form
+        class="p-3 w-100 d-flex flex-column row-gap-2 shadow-lg"
+        v-on:submit="onSubmitHandler"
+      >
+        <div class="d-flex justify-content-end">
+          <button class="btn btn-danger">{{ formValues.status }}</button>
+        </div>
+        <div>
+          <label class="form-label" for="title">Title:</label>
+          <input
+            class="form-control"
+            type="text"
+            id="title"
+            name="title"
+            v-model="formValues.title"
+            v-bind:disabled="true"
+          />
+        </div>
 
-      <div>
-        <label class="form-label" for="description">Description:</label>
-        <textarea
-          class="form-control"
-          id="description"
-          name="description"
-          rows="4"
-          v-model="formValues.description"
-          v-bind:disabled="true"
-        >
-        </textarea>
-      </div>
+        <div>
+          <label class="form-label" for="description">Description:</label>
+          <textarea
+            class="form-control"
+            id="description"
+            name="description"
+            rows="4"
+            v-model="formValues.description"
+            v-bind:disabled="true"
+          >
+          </textarea>
+        </div>
 
-      <div>
-        <label class="form-label" for="severity">Severity:</label>
-        <input
-          class="form-control"
-          type="text"
-          id="severity"
-          name="severity"
-          v-model="formValues.severity"
-          v-bind:disabled="true"
-        />
-      </div>
+        <div>
+          <label class="form-label" for="severity">Severity:</label>
+          <input
+            class="form-control"
+            type="text"
+            id="severity"
+            name="severity"
+            v-model="formValues.severity"
+            v-bind:disabled="true"
+          />
+        </div>
 
-      <div>
-        <label class="form-label" for="category">Category:</label>
-        <input
-          class="form-control"
-          type="text"
-          id="category"
-          name="category"
-          v-model="formValues.category"
-          v-bind:disabled="true"
-        />
-      </div>
+        <div>
+          <label class="form-label" for="category">Category:</label>
+          <input
+            class="form-control"
+            type="text"
+            id="category"
+            name="category"
+            v-model="formValues.category"
+            v-bind:disabled="true"
+          />
+        </div>
 
-      <div>
-        <label class="form-label" for="subCategory">Sub-Category:</label>
-        <input
-          class="form-control"
-          type="text"
-          id="subCategory"
-          name="subCategory"
-          v-model="formValues.subCategory"
-          v-bind:disabled="true"
-        />
-      </div>
+        <div>
+          <label class="form-label" for="subCategory">Sub-Category:</label>
+          <input
+            class="form-control"
+            type="text"
+            id="subCategory"
+            name="subCategory"
+            v-model="formValues.subCategory"
+            v-bind:disabled="true"
+          />
+        </div>
 
-      <div>
-        <label class="form-label" for="rootCause">Root Cause:</label>
-        <textarea
-          class="form-control"
-          type="text"
-          id="rootCause"
-          name="rootCause"
-          rows="2"
-          v-model="formValues.rootCause"
-        ></textarea>
-      </div>
+        <div>
+          <label class="form-label" for="assetId">Asset-Id:</label>
+          <input
+            class="form-control"
+            type="text"
+            id="assetId"
+            name="assetId"
+            v-model="formValues.assetId"
+            v-bind:disabled="true"
+          />
+        </div>
 
-      <div>
-        <label class="form-label" for="rootCause">Approval for:</label>
-        <input
-          class="form-control"
-          type="text"
-          id="approvalFor"
-          name="approvalFor"
-          v-model="formValues.approvalFor"
-        />
-      </div>
-      <div>
-        <label class="form-label" for="rootCause">Remarks:</label>
-        <textarea
-          class="form-control"
-          type="text"
-          id="remarks"
-          name="remarks"
-          rows="2"
-          v-model="formValues.remarks"
-        ></textarea>
-      </div>
-      <div class="d-flex justify-content-end">
-        <button type="submit" class="me-2 btn btn-primary">
-          Submit for approval
-        </button>
-        <button type="submit" class="btn btn-primary">Close ticket</button>
-      </div>
-    </form>
+        <template v-if="formValues.assignedTo === userDataJson.userId">
+          <div>
+            <label class="form-label" for="rootCause">Root Cause:</label>
+            <textarea
+              class="form-control"
+              type="text"
+              id="rootCause"
+              name="rootCause"
+              rows="2"
+              v-model="formValues.rootCause"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="form-label" for="rootCause">Approval for:</label>
+            <input
+              class="form-control"
+              type="text"
+              id="approvalFor"
+              name="approvalFor"
+              v-model="formValues.approvalFor"
+            />
+          </div>
+
+          <div>
+            <label class="form-label" for="rootCause">Remarks:</label>
+            <textarea
+              class="form-control"
+              type="text"
+              id="remarks"
+              name="remarks"
+              rows="2"
+              v-model="formValues.remarks"
+            ></textarea>
+          </div>
+
+          <div class="d-flex justify-content-end">
+            <button
+              type="submit"
+              name="approvalBtn"
+              class="me-2 btn btn-primary"
+              :disabled="isBtnLoadingWrapper"
+            >
+              <span
+                v-if="isApprovalBtnLoading"
+                class="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+              ></span>
+              Submit for approval
+            </button>
+
+            <button
+              type="submit"
+              name="closeBtn"
+              class="btn btn-primary"
+              :disabled="isBtnLoadingWrapper"
+            >
+              <span
+                v-if="isCloseTicketBtnLoading"
+                class="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+              ></span>
+              Close ticket
+            </button>
+          </div>
+        </template>
+      </form>
+    </div>
   </div>
 </template>
 
-<style scoped>
-.formContainer {
-  /* border: 1px solid red; */
-  max-width: 500px;
-}
-</style>
+<style scoped></style>

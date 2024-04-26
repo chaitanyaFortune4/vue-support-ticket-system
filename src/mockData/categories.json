@@ -5,7 +5,14 @@
       "categories": [
         {
           "name": "Hardware",
-          "subCategories": ["Desktop", "Laptop", "Server"]
+          "subCategories": [
+            "CPU",
+            "Monitor",
+            "Keyboard",
+            "Mouse",
+            "Laptop",
+            "Server"
+          ]
         },
         {
           "name": "Software",

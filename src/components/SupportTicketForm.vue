@@ -3,13 +3,14 @@ import useVuelidate from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
 import { reactive, ref, watch } from "vue";
 import categoriesJson from "../mockData/categories.json";
-import { createTicket } from "@/composables/apiService";
+import { createTicket } from "@/composables/ticketApis";
+import userDataJson from "../mockData/userDetails.json";
 
 const heading = "Support Ticket Form";
 const isLoading = ref(false);
 const error = ref(null);
 const formValues = reactive({
-  user_id: "1",
+  userId: userDataJson.userId,
   title: "",
   description: "",
   severity: "",
@@ -29,6 +30,7 @@ const rules = {
 const v$ = useVuelidate(rules, formValues);
 
 const severityLevels = categoriesJson.severity;
+const assets = userDataJson.assets;
 const categories = ref([]);
 const subCategories = ref([]);
 
@@ -65,12 +67,10 @@ async function onSubmitHandler(e) {
   if (!isFormValid) {
     return;
   }
-  console.log("Data", formValues);
-  const createTicketRes = await createTicket(formValues);
-  console.log("createTicketRes", createTicketRes);
   isLoading.value = true;
   try {
     const createTicketRes = await createTicket(formValues); // Pass any required payload
+
     if (createTicketRes.data.success) {
       alert(`${createTicketRes.data.message}`);
     }
@@ -164,13 +164,12 @@ async function onSubmitHandler(e) {
 
       <div>
         <label class="form-label" for="title">Asset-Id:</label>
-        <input
-          class="form-control"
-          type="text"
-          id="assetId"
-          name="assetId"
-          v-model="formValues.assetId"
-        />
+        <select class="form-select" id="assetId" v-model="formValues.assetId">
+          <option disabled value="">Please select one</option>
+          <option v-for="asset in assets" :key="asset.assetId">
+            {{ asset.assetId }}
+          </option>
+        </select>
         <!-- <span class="font" v-if="v$.title.$error">Title is required</span> -->
       </div>
 
@@ -191,5 +190,8 @@ async function onSubmitHandler(e) {
 .formContainer {
   /* border: 1px solid red; */
   max-width: 500px;
+}
+.font {
+  color: red;
 }
 </style>
