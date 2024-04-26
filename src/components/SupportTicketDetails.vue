@@ -110,7 +110,13 @@ async function onSubmitHandler(e) {
 </script>
 
 <template>
-  <div v-if="isLoading">Loading...</div>
+  <div v-if="isLoading">
+    <div class="d-flex justify-content-center mt-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </div>
   <div v-else-if="error">{{ error }}</div>
 
   <div v-else>
