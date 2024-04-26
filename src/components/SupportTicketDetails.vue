@@ -125,7 +125,9 @@ async function onSubmitHandler(e) {
         v-on:submit="onSubmitHandler"
       >
         <div class="d-flex justify-content-end">
-          <button class="btn btn-danger">{{ formValues.status }}</button>
+          <div class="badge rounded-pill text-bg-danger customStatus">
+            {{ formValues.status }}
+          </div>
         </div>
         <div>
           <label class="form-label" for="title">Title:</label>
@@ -273,4 +275,11 @@ async function onSubmitHandler(e) {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.customStatus {
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+</style>
