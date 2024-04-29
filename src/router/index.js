@@ -5,6 +5,7 @@ import NotFound from "@/views/NotFound.vue";
 import SupportTicketList from "@/components/SupportTicketList.vue";
 import SupportTicketForm from "@/components/SupportTicketForm.vue";
 import SupportTicketDetails from "@/components/SupportTicketDetails.vue";
+import UploadAssetsForm from "@/components/UploadAssetsForm.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,6 +24,11 @@ const router = createRouter({
       path: "/ticket-details/:id",
       name: "ticket-details",
       component: SupportTicketDetails,
+    },
+    {
+      path: "/upload-assets",
+      name: "upload-assets",
+      component: UploadAssetsForm,
     },
 
     // {

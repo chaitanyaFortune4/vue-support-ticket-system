@@ -45,3 +45,14 @@ export async function submitTicketApproval(payload) {
     return error.response;
   }
 }
+
+export async function getAllUsers() {
+  try {
+    const res = await axios.get(`${apiList.getAllUsers}`);
+    // console.log(res);
+    return res;
+  } catch (error) {
+    console.log("error", error);
+    return error.response;
+  }
+}
