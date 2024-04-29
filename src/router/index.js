@@ -11,13 +11,13 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      name: "home",
-      component: SupportTicketForm,
-    },
-    {
-      path: "/ticket-list",
       name: "ticket-list",
       component: SupportTicketList,
+    },
+    {
+      path: "/create-ticket",
+      name: "create-ticket",
+      component: SupportTicketForm,
     },
     {
       path: "/ticket-details/:id",

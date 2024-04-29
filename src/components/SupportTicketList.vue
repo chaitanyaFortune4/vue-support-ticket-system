@@ -39,6 +39,10 @@ fetchData(); // Call fetchData when component is mounted
 function viewDetails(ticketId) {
   router.push({ name: "ticket-details", params: { id: ticketId } });
 }
+
+const handleCreateTicket = () => {
+  router.push({ name: "create-ticket" });
+};
 </script>
 
 <template>
@@ -52,9 +56,12 @@ function viewDetails(ticketId) {
   <div v-else-if="error">{{ error }}</div>
 
   <div v-else>
-    <div class="container-xxl">
-      <div class="mb-5 text-center">
+    <div class="container-xxl p-5 formContainer">
+      <div class="mb-5 d-flex justify-content-between">
         <h1>{{ heading }}</h1>
+        <button class="btn btn-primary" @click="handleCreateTicket">
+          Create ticket
+        </button>
       </div>
       <table class="table table-striped text-center border">
         <thead class="border-bottom border-black">
