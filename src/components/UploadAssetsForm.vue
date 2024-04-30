@@ -3,10 +3,17 @@ import useVuelidate from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
 import { computed, reactive, ref, watch } from "vue";
 import categoriesJson from "../mockData/categories.json";
-import { createTicket, getAllUsers } from "@/composables/ticketApis";
+import {
+  createTicket,
+  getAllAssets,
+  getAllUsers,
+} from "@/composables/ticketApis";
 import userDataJson from "../mockData/userDetails.json";
 import Papa from "papaparse";
+// import Multiselect from "@vueform/multiselect";
+import Multiselect from "vue-multiselect";
 
+const options = ["Batman", "Robin", "Joker"];
 const heading = "Upload Assets";
 const formValues = reactive({
   name: "",
@@ -15,6 +22,7 @@ const formValues = reactive({
 });
 const error = ref(null);
 const usersList = ref([]);
+const assetsList = ref([]);
 const showUserList = ref(false);
 const selectedUser = ref(null);
 const uploadedFileName = ref("");
@@ -32,6 +40,17 @@ async function fetchData() {
       error.value =
         getAllUsersRes.data.message ||
         getAllUsersRes.data.error ||
+        "Something went wrong, Please try again later";
+    }
+
+    const getAllAssets = await getAllAssets();
+    console.log("getAllAssets", getAllAssets);
+    if (getAllAssets.data.success) {
+      assetsList.value = getAllAssets.data.data;
+    } else {
+      error.value =
+        getAllAssets.data.message ||
+        getAllAssets.data.error ||
         "Something went wrong, Please try again later";
     }
   } catch (error) {
@@ -163,7 +182,7 @@ const filteredUsers = computed(() => {
     </div>
     <div style="border: 1px solid black; width: 100%"></div>
     <div class="w-100">
-      <div class="mb-2">Individual upload form</div>
+      <div class="mb-3">Individual upload form</div>
 
       <div>
         <label class="form-label" for="name">Name:</label>
@@ -184,12 +203,11 @@ const filteredUsers = computed(() => {
           </div>
         </div> -->
         <select
-          class="form-select"
+          class="form-control"
           id="name"
           v-model="selectedUser"
           @change="handleInputName"
         >
-          <option disabled value="">Please select one</option>
           <option v-for="user in usersList" :key="user.id" :value="user">
             {{ user.firstName + user.lastName }}
           </option>
@@ -198,19 +216,32 @@ const filteredUsers = computed(() => {
 
       <div>
         <label class="form-label" for="userId">Id:</label>
-        <input
+        <!-- <input
           class="form-control"
           autocomplete="off"
           name="userId"
           v-model="formValues.id"
-        />
+        /> -->
+      </div>
+
+      <div>
+        <!-- <label class="form-label" for="assets">Assets:</label>
+        <select
+          multiple="multiple"
+          class="form-control"
+          id="assets"
+          data-live-search="true"
+          v-model="formValues.assets"
+        >
+          <option>China</option>
+          <option>Malayasia</option>
+          <option>Singapore</option>
+        </select> -->
+        <Multiselect v-model="formValues.name" :options="options" />
       </div>
     </div>
   </div>
 </template>
 
-<style scoped>
-.test:hover {
-  border: 1px solid black;
-}
-</style>
+<style src="vue-multiselect/dist/vue-multiselect.css"></style>
+<style scoped></style>

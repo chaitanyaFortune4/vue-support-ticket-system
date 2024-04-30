@@ -6,4 +6,5 @@ export const apiList = {
   getTicketByTicketId: `${baseUrl}/api/ticketDetails`,
   submitTicketApproval: `${baseUrl}/api/updateTicket`,
   getAllUsers: `${baseUrl}/api/users`,
+  getAllAssets: `${baseUrl}/api/assets`,
 };

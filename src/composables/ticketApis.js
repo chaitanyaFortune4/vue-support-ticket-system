@@ -56,3 +56,14 @@ export async function getAllUsers() {
     return error.response;
   }
 }
+
+export async function getAllAssets() {
+  try {
+    const res = await axios.get(`${apiList.getAllAssets}`);
+    // console.log(res);
+    return res;
+  } catch (error) {
+    console.log("error", error);
+    return error.response;
+  }
+}
