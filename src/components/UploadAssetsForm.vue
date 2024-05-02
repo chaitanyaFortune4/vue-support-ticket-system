@@ -4,86 +4,53 @@ import { required } from "@vuelidate/validators";
 import { computed, reactive, ref, watch } from "vue";
 import categoriesJson from "../mockData/categories.json";
 import {
+  bulkAllocateAsset,
   createTicket,
   getAllAssets,
   getAllUsers,
 } from "@/composables/ticketApis";
 import userDataJson from "../mockData/userDetails.json";
 import Papa from "papaparse";
-// import Multiselect from "@vueform/multiselect";
-import Multiselect from "vue-multiselect";
 
-const options = ["Batman", "Robin", "Joker"];
 const heading = "Upload Assets";
-const formValues = reactive({
-  name: "",
-  id: "",
-  assets: [],
-});
 const error = ref(null);
-const usersList = ref([]);
-const assetsList = ref([]);
-const showUserList = ref(false);
-const selectedUser = ref(null);
 const uploadedFileName = ref("");
 const fileData = ref([]);
 const isLoading = ref(false);
 
-async function fetchData() {
+const transformDataForAPI = (fileData) => {
+  const groupedData = {};
+  for (let i = 1; i < fileData.length; i++) {
+    const entry = fileData[i];
+    const { UserId, Name, AssetId } = entry;
+    if (!groupedData[UserId]) {
+      groupedData[UserId] = {
+        userId: UserId,
+        assetNames: [],
+      };
+    }
+    groupedData[UserId].assetNames.push(AssetId);
+  }
+  return Object.values(groupedData);
+};
+
+const handleBulkSubmit = async (e) => {
+  e.preventDefault();
   isLoading.value = true;
   try {
-    const getAllUsersRes = await getAllUsers();
-    console.log("getAllUsersRes", getAllUsersRes);
-    if (getAllUsersRes.data.success) {
-      usersList.value = getAllUsersRes.data.data;
-    } else {
-      error.value =
-        getAllUsersRes.data.message ||
-        getAllUsersRes.data.error ||
-        "Something went wrong, Please try again later";
-    }
-
-    const getAllAssets = await getAllAssets();
-    console.log("getAllAssets", getAllAssets);
-    if (getAllAssets.data.success) {
-      assetsList.value = getAllAssets.data.data;
-    } else {
-      error.value =
-        getAllAssets.data.message ||
-        getAllAssets.data.error ||
-        "Something went wrong, Please try again later";
-    }
+    const formattedData = transformDataForAPI(fileData.value);
+    console.log("Data to send to API:", formattedData);
+    const payload = {
+      allocationData: formattedData,
+    };
+    const bulkAllocateAssetRes = await bulkAllocateAsset(payload);
+    console.log("bulkAllocateAssetRes", bulkAllocateAssetRes);
   } catch (error) {
-    error.value = error.message || "Error fetching ticket data";
+    console.log("error", error);
   } finally {
     isLoading.value = false;
   }
-}
-
-fetchData();
-
-const transformDataForAPI = (fileData) => {
-  const groupedData = {};
-  fileData.forEach((entry) => {
-    console.log("ENTRY", entry);
-    const { UserId, Name, AssetId } = entry;
-    if (!groupedData[Name]) {
-      groupedData[Name] = {
-        userId: UserId,
-        name: Name,
-        assetsId: [],
-      };
-    }
-    groupedData[Name].assetsId.push(AssetId);
-  });
-
-  return Object.values(groupedData);
 };
-async function handleBulkSubmit(e) {
-  e.preventDefault();
-  const formattedData = transformDataForAPI(fileData.value);
-  console.log("Data to send to API:", formattedData);
-}
 
 function handleBulkUpload() {
   // Trigger file input click when "Upload CSV file" button is clicked
@@ -117,31 +84,6 @@ const handleFileChange = (event) => {
     },
   });
 };
-
-const handleInputName = (e) => {
-  console.log("here", selectedUser.value);
-  // const selectedUser = e.target.value;
-  formValues.name = selectedUser.value.firstName;
-  formValues.id = selectedUser.value.id;
-  console.log("FV", formValues.name);
-};
-
-const handleSelectUser = (user) => {
-  console.log("USEr", user);
-  formValues.name = user.firstName;
-  formValues.id = user.userId;
-  // showUserList.value = false;
-};
-
-const filteredUsers = computed(() => {
-  console.log("here");
-  // showUserList.value = true;
-  const text = formValues.name.toLowerCase();
-  return usersList.value.filter((user) => {
-    const fullName = `${user.firstName.toLowerCase()} ${user.lastName.toLowerCase()}`;
-    return fullName.includes(text);
-  });
-});
 </script>
 
 <template>
@@ -172,76 +114,21 @@ const filteredUsers = computed(() => {
         <div>
           <button
             class="btn btn-primary"
-            :disabled="!uploadedFileName"
+            :disabled="!uploadedFileName || isLoading"
             @click="handleBulkSubmit"
           >
+            <span
+              v-if="isLoading"
+              class="spinner-border spinner-border-sm"
+              role="status"
+              aria-hidden="true"
+            ></span>
             Submit
           </button>
         </div>
       </div>
     </div>
-    <div style="border: 1px solid black; width: 100%"></div>
-    <div class="w-100">
-      <div class="mb-3">Individual upload form</div>
-
-      <div>
-        <label class="form-label" for="name">Name:</label>
-        <!-- <input
-          class="form-control"
-          autocomplete="off"
-          name="name"
-          v-model="formValues.name"
-        /> -->
-        <!-- <div v-if="formValues.name" style="background-color: grey">
-          <div
-            v-for="user in filteredUsers"
-            :key="user.id"
-            class="test"
-            @click="() => handleSelectUser(user)"
-          >
-            {{ user.firstName }} {{ user.lastName }}
-          </div>
-        </div> -->
-        <select
-          class="form-control"
-          id="name"
-          v-model="selectedUser"
-          @change="handleInputName"
-        >
-          <option v-for="user in usersList" :key="user.id" :value="user">
-            {{ user.firstName + user.lastName }}
-          </option>
-        </select>
-      </div>
-
-      <div>
-        <label class="form-label" for="userId">Id:</label>
-        <!-- <input
-          class="form-control"
-          autocomplete="off"
-          name="userId"
-          v-model="formValues.id"
-        /> -->
-      </div>
-
-      <div>
-        <!-- <label class="form-label" for="assets">Assets:</label>
-        <select
-          multiple="multiple"
-          class="form-control"
-          id="assets"
-          data-live-search="true"
-          v-model="formValues.assets"
-        >
-          <option>China</option>
-          <option>Malayasia</option>
-          <option>Singapore</option>
-        </select> -->
-        <Multiselect v-model="formValues.name" :options="options" />
-      </div>
-    </div>
   </div>
 </template>
 
-<style src="vue-multiselect/dist/vue-multiselect.css"></style>
 <style scoped></style>

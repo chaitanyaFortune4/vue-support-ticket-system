@@ -1,44 +1,60 @@
 <script setup>
-import { getAllAssets } from "@/composables/ticketApis";
+import {
+  allocateAssetbyId,
+  getAllAssets,
+  getAllUnallocatedAssets,
+  getUserById,
+} from "@/composables/ticketApis";
 import useVuelidate from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
-import { reactive, ref, watch } from "vue";
+import { reactive, ref, toValue, unref, watch } from "vue";
 import Multiselect from "vue-multiselect";
 
 import { useRoute, useRouter } from "vue-router";
 
-const value = ref([]);
-const options = ref([]);
-
-const addTag = (newTag) => {};
-
 let router = useRouter();
 let route = useRoute();
-const heading = "User Details";
-const userData = JSON.parse(localStorage.getItem("user"));
-const formValues = reactive({
-  id: userData.id,
-  userId: userData.userId,
-  name: userData.firstName,
-  assets: ["Mouse", "Keyboard"],
-});
-
 const { id } = route.params;
 
+const formValues = reactive({
+  id: "",
+  userId: "",
+  name: "",
+  assets: [],
+});
+
+const getUserDetails = async () => {
+  try {
+    const getUserDetailsRes = await getUserById(id);
+    console.log("getUserDetailsRes", getUserDetailsRes);
+    formValues.id = getUserDetailsRes.data.data.id;
+    formValues.name = getUserDetailsRes.data.data.name;
+    formValues.userId = getUserDetailsRes.data.data.userId;
+    formValues.assets = getUserDetailsRes.data.data.assets;
+  } catch (error) {
+    console.log("error", error);
+  } finally {
+  }
+};
+getUserDetails();
+
+const options = ref([]);
+const heading = "User Details";
+const isBtnLoading = ref(false);
 const isLoading = ref(false);
 const error = ref(null);
 
-async function fetchTicketData() {
+async function fetchAllUnallocatedAssets() {
   isLoading.value = true;
   try {
-    const getAllAssetsRes = await getAllAssets();
-    console.log("getAllAssetsRes", getAllAssetsRes);
-    if (getAllAssetsRes.data.success) {
-      options.value = getAllAssetsRes.data.data;
+    const getAllUnallocatedAssetsRes = await getAllUnallocatedAssets();
+    console.log("getAllUnallocatedAssetsRes", getAllUnallocatedAssetsRes);
+    if (getAllUnallocatedAssetsRes.data.success) {
+      options.value = getAllUnallocatedAssetsRes.data.data;
     } else {
       error.value =
-        getAllAssetsRes.data.message ||
-        getAllAssetsRes.data.error ||
+        getAllUnallocatedAssetsRes.data.message ||
+        getAllUnallocatedAssetsRes.data.error ||
         "Something went wrong, Please try again later";
     }
   } catch (error) {
@@ -47,12 +63,25 @@ async function fetchTicketData() {
     isLoading.value = false;
   }
 }
-fetchTicketData();
+fetchAllUnallocatedAssets();
 
 async function onSubmitHandler(e) {
   e.preventDefault();
-  const selectedV = value.value;
-  console.log("VAL", selectedV);
+  isBtnLoading.value = true;
+  try {
+    const selectedV = formValues.assets;
+    const payload = {
+      userId: formValues.userId,
+      assetIds: selectedV.map((asset) => asset.id),
+    };
+    console.log("Payload:", payload);
+    const allocateAssetByIdRes = await allocateAssetbyId(payload);
+    console.log("allocateAssetByIdRes", allocateAssetByIdRes);
+  } catch (error) {
+    console.log("error", error);
+  } finally {
+    isBtnLoading.value = false;
+  }
 }
 </script>
 
@@ -67,14 +96,12 @@ async function onSubmitHandler(e) {
   <div v-else-if="error">{{ error }}</div>
 
   <div v-else>
-    <div
-      class="container-lg d-flex flex-column align-items-center row-gap-3 mb-5"
-    >
+    <div class="container d-flex flex-column align-items-center row-gap-3 mb-5">
       <div>
         <h1>{{ heading }}</h1>
       </div>
       <form
-        class="p-3 w-100 d-flex flex-column row-gap-2 shadow-lg text"
+        class="p-3 w-100 d-flex flex-column row-gap-2 shadow-lg"
         v-on:submit="onSubmitHandler"
       >
         <div>
@@ -101,19 +128,9 @@ async function onSubmitHandler(e) {
         </div>
 
         <div>
-          <label class="form-label" for="userId">Assets:</label>
-          <input
-            class="form-control"
-            id="assets"
-            name="assets"
-            v-model="formValues.assets"
-            v-bind:disabled="true"
-          />
-        </div>
-        <div>
           <label class="form-label" for="userId">Add assets:</label>
           <Multiselect
-            v-model="value"
+            v-model="formValues.assets"
             tag-placeholder="Add this as new tag"
             placeholder="Search & add asset"
             label="assetId"
@@ -122,9 +139,17 @@ async function onSubmitHandler(e) {
             :multiple="true"
             :close-on-select="false"
             :taggable="false"
-          ></Multiselect>
+          />
         </div>
-        <button type="submit">Submit</button>
+        <button type="submit" class="btn btn-primary" :disabled="isBtnLoading">
+          <span
+            v-if="isBtnLoading"
+            class="spinner-border spinner-border-sm"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          Submit
+        </button>
       </form>
     </div>
   </div>
@@ -138,9 +163,5 @@ async function onSubmitHandler(e) {
   padding-right: 2rem;
   padding-top: 1rem;
   padding-bottom: 1rem;
-}
-.text {
-  border: 1px solid red;
-  height: 800px;
 }
 </style>

@@ -38,7 +38,6 @@ async function fetchData() {
 fetchData();
 
 const handleViewUserDetails = (user) => {
-  localStorage.setItem("user", JSON.stringify(user));
   router.push({ name: "user-details", params: { id: user.id } });
 };
 </script>

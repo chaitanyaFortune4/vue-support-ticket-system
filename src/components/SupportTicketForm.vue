@@ -3,13 +3,15 @@ import useVuelidate from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
 import { reactive, ref, watch } from "vue";
 import categoriesJson from "../mockData/categories.json";
-import { createTicket } from "@/composables/ticketApis";
+// import { createTicket } from "@/composables/ticketApis";
 import userDataJson from "../mockData/userDetails.json";
+import { useCreateTicket } from "@/composables/useCreateTicket";
+import { toast } from "vue3-toastify";
 
 const heading = "Support Ticket Form";
-const isLoading = ref(false);
-const error = ref(null);
-const formValues = reactive({
+const { data, isLoading, error, createTicket } = useCreateTicket();
+
+const initialFormState = {
   userId: userDataJson.userId,
   title: "",
   description: "",
@@ -17,7 +19,12 @@ const formValues = reactive({
   category: "",
   subCategory: "",
   assetId: "",
-});
+};
+
+const formValues = reactive({ ...initialFormState });
+const resetForm = () => {
+  Object.assign(formValues, initialFormState);
+};
 
 const rules = {
   title: { required },
@@ -26,7 +33,6 @@ const rules = {
   category: { required },
   subCategory: { required },
 };
-
 const v$ = useVuelidate(rules, formValues);
 
 const severityLevels = categoriesJson.severity;
@@ -42,8 +48,8 @@ watch(
     );
     if (selectedSeverity) {
       categories.value = selectedSeverity.categories;
-      formValues.category = ""; // Reset category on severity change
-      formValues.subCategory = ""; // Reset subcategory on severity change
+      formValues.category = "";
+      formValues.subCategory = "";
     }
   }
 );
@@ -56,30 +62,18 @@ watch(
     );
     if (selectedCategory) {
       subCategories.value = selectedCategory.subCategories;
-      formValues.subCategory = ""; // Reset subcategory on category change
+      formValues.subCategory = "";
     }
   }
 );
 
-async function onSubmitHandler(e) {
+const onSubmitHandler = async (e) => {
   e.preventDefault();
-  const isFormValid = await v$.value.$validate();
-  if (!isFormValid) {
-    return;
-  }
-  isLoading.value = true;
-  try {
-    const createTicketRes = await createTicket(formValues); // Pass any required payload
-
-    if (createTicketRes.data.success) {
-      alert(`${createTicketRes.data.message}`);
-    }
-  } catch (err) {
-    error.value = err.message || "Error creating ticket";
-  } finally {
-    isLoading.value = false;
-  }
-}
+  await createTicket(formValues);
+  console.log("data", data.value.success);
+  toast.success(`${data.value.message}`);
+  resetForm();
+};
 </script>
 
 <template>

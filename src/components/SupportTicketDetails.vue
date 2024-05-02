@@ -9,8 +9,18 @@ import {
   submitTicketApproval,
 } from "@/composables/ticketApis";
 import userDataJson from "../mockData/userDetails.json";
+import { useGetTicketDetails } from "@/composables/useGetTicketDetails";
 
 const heading = "Ticket Details";
+
+let router = useRouter();
+let route = useRoute();
+let { id } = route.params;
+
+const isBtnLoadingWrapper = ref(false);
+const isApprovalBtnLoading = ref(false);
+const isCloseTicketBtnLoading = ref(false);
+
 const formValues = reactive({
   title: "",
   description: "",
@@ -24,54 +34,26 @@ const formValues = reactive({
   status: "",
 });
 
-const isLoading = ref(false);
-const isBtnLoadingWrapper = ref(false);
-const isApprovalBtnLoading = ref(false);
-const isCloseTicketBtnLoading = ref(false);
-const error = ref(null);
-let router = useRouter();
-let route = useRoute();
-let { id } = route.params;
+const { data, isLoading, error, getTicketDetails } = useGetTicketDetails();
 
-async function fetchTicketData() {
-  const payload = {
-    id: id,
-    userId: userDataJson.userId,
-  };
-  isLoading.value = true;
-  try {
-    const getTicketByTicketIdRes = await getTicketByTicketId(payload); // Pass any required payload
-    console.log("getTicketByTicketIdRes", getTicketByTicketIdRes);
-    if (getTicketByTicketIdRes.data.success) {
-      ({
-        title: formValues.title,
-        description: formValues.description,
-        severity: formValues.severity,
-        category: formValues.category,
-        subCategory: formValues.subCategory,
-        assetId: formValues.assetId,
-        rootCause: formValues.rootCause,
-        approvalFor: formValues.approvalFor,
-        remarks: formValues.remarks,
-        status: formValues.status,
-        assignedTo: formValues.assignedTo,
-        createdBy: formValues.createdBy,
-        userId: formValues.userId,
-      } = getTicketByTicketIdRes.data.data);
-    } else {
-      router.push("/");
-      error.value =
-        getTicketByTicketIdRes.data.message ||
-        getTicketByTicketIdRes.data.error ||
-        "Something went wrong, Please try again later";
-    }
-  } catch (error) {
-    error.value = error.message || "Error fetching ticket data";
-  } finally {
-    isLoading.value = false;
-  }
-}
-fetchTicketData();
+getTicketDetails({ id: id, userId: userDataJson.userId }).then(() => {
+  console.log("data", data.value);
+  ({
+    title: formValues.title,
+    description: formValues.description,
+    severity: formValues.severity,
+    category: formValues.category,
+    subCategory: formValues.subCategory,
+    assetId: formValues.assetId,
+    rootCause: formValues.rootCause,
+    approvalFor: formValues.approvalFor,
+    remarks: formValues.remarks,
+    status: formValues.status,
+    assignedTo: formValues.assignedTo,
+    createdBy: formValues.createdBy,
+    userId: formValues.userId,
+  } = data.value);
+});
 
 async function onSubmitHandler(e) {
   e.preventDefault();

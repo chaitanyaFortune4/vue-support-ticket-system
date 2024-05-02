@@ -6,5 +6,9 @@ export const apiList = {
   getTicketByTicketId: `${baseUrl}/api/ticketDetails`,
   submitTicketApproval: `${baseUrl}/api/updateTicket`,
   getAllUsers: `${baseUrl}/api/users`,
+  getUserById: `${baseUrl}/api/user`, //user/:id
   getAllAssets: `${baseUrl}/api/assets`,
+  getAllUnallocatedAssets: `${baseUrl}/api/available-assets`,
+  bulkAllocateAsset: `${baseUrl}/api/bulk-allocateAsset`,
+  allocateAssetbyId: `${baseUrl}/api/allocateAsset`,
 };

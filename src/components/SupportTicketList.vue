@@ -3,38 +3,20 @@ import { getAllTicket } from "@/composables/ticketApis";
 import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import userData from "../mockData/userDetails.json";
+import { useGetTicketList } from "@/composables/useGetTicketList";
 
 let router = useRouter();
-
 const heading = "Tickets List";
-const isLoading = ref(false);
-const ticketList = ref(null);
-const error = ref(null);
+const {
+  data: ticketList,
+  isLoading,
+  error,
+  getTicketList,
+} = useGetTicketList();
 
-async function fetchData() {
-  const payload = {
-    userId: userData.userId,
-  };
-  isLoading.value = true;
-  try {
-    const getAllTicketRes = await getAllTicket(payload); // Pass any required payload
-    console.log("getAllTicketRes", getAllTicketRes);
-    if (getAllTicketRes.data.success) {
-      ticketList.value = getAllTicketRes.data.data;
-    } else {
-      error.value =
-        getAllTicketRes.data.message ||
-        getAllTicketRes.data.error ||
-        "Something went wrong, Please try again later";
-    }
-  } catch (error) {
-    error.value = error.message || "Error fetching ticket data";
-  } finally {
-    isLoading.value = false;
-  }
-}
-
-fetchData(); // Call fetchData when component is mounted
+getTicketList({ userId: userData.userId }).then(() => {
+  console.log("data", ticketList.value);
+});
 
 function viewDetails(ticketId) {
   router.push({ name: "ticket-details", params: { id: ticketId } });
@@ -42,6 +24,10 @@ function viewDetails(ticketId) {
 
 const handleCreateTicket = () => {
   router.push({ name: "create-ticket" });
+};
+
+const handleAllUsers = () => {
+  router.push({ name: "user-list" });
 };
 </script>
 
@@ -59,9 +45,14 @@ const handleCreateTicket = () => {
     <div class="container-xxl p-5 formContainer">
       <div class="mb-5 d-flex justify-content-between">
         <h1>{{ heading }}</h1>
-        <button class="btn btn-primary" @click="handleCreateTicket">
-          Create ticket
-        </button>
+        <div class="d-flex gap-2">
+          <button class="btn btn-primary" @click="handleAllUsers">
+            All Users
+          </button>
+          <button class="btn btn-primary" @click="handleCreateTicket">
+            Create ticket
+          </button>
+        </div>
       </div>
       <table class="table table-striped text-center border">
         <thead class="border-bottom border-black">
