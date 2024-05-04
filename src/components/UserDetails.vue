@@ -1,20 +1,19 @@
 <script setup>
-import {
-  allocateAssetbyId,
-  getAllAssets,
-  getAllUnallocatedAssets,
-  getUserById,
-} from "@/composables/ticketApis";
-import useVuelidate from "@vuelidate/core";
-import { required } from "@vuelidate/validators";
-import { reactive, ref, toValue, unref, watch } from "vue";
-import Multiselect from "vue-multiselect";
-
+import { useAllocateAssetById } from "@/composables/useAllocateAssetById";
+import { useGetUnAllocatedAssets } from "@/composables/useGetUnAllocatedAssets";
+import { useGetUserDetails } from "@/composables/useGetUserDetails";
+import { reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import Multiselect from "vue-multiselect";
+import { toast } from "vue3-toastify";
 
 let router = useRouter();
 let route = useRoute();
 const { id } = route.params;
+
+const heading = "User Details";
+const isBtnLoading = ref(false);
+const options = ref([]);
 
 const formValues = reactive({
   id: "",
@@ -23,77 +22,66 @@ const formValues = reactive({
   assets: [],
 });
 
-const getUserDetails = async () => {
-  try {
-    const getUserDetailsRes = await getUserById(id);
-    console.log("getUserDetailsRes", getUserDetailsRes);
-    formValues.id = getUserDetailsRes.data.data.id;
-    formValues.name = getUserDetailsRes.data.data.name;
-    formValues.userId = getUserDetailsRes.data.data.userId;
-    formValues.assets = getUserDetailsRes.data.data.assets;
-  } catch (error) {
-    console.log("error", error);
-  } finally {
-  }
-};
-getUserDetails();
+const {
+  data: userData,
+  isLoading: isUserLoading,
+  error: userError,
+  getUserDetails,
+} = useGetUserDetails();
 
-const options = ref([]);
-const heading = "User Details";
-const isBtnLoading = ref(false);
-const isLoading = ref(false);
-const error = ref(null);
+const {
+  data: assetsData,
+  isLoading: isAssetsLoading,
+  error: assetsError,
+  getUnAllocatedAssets,
+} = useGetUnAllocatedAssets();
 
-async function fetchAllUnallocatedAssets() {
-  isLoading.value = true;
-  try {
-    const getAllUnallocatedAssetsRes = await getAllUnallocatedAssets();
-    console.log("getAllUnallocatedAssetsRes", getAllUnallocatedAssetsRes);
-    if (getAllUnallocatedAssetsRes.data.success) {
-      options.value = getAllUnallocatedAssetsRes.data.data;
-    } else {
-      error.value =
-        getAllUnallocatedAssetsRes.data.message ||
-        getAllUnallocatedAssetsRes.data.error ||
-        "Something went wrong, Please try again later";
-    }
-  } catch (error) {
-    error.value = error.message || "Error fetching user data";
-  } finally {
-    isLoading.value = false;
-  }
-}
-fetchAllUnallocatedAssets();
+const {
+  data: allocationData,
+  isLoading: isAllocationLoading,
+  error: allocationError,
+  allocateAssetById,
+} = useAllocateAssetById();
 
-async function onSubmitHandler(e) {
+getUserDetails(id).then(() => {
+  formValues.id = userData.value.id;
+  formValues.name = userData.value.name;
+  formValues.userId = userData.value.userId;
+  formValues.assets = userData.value.assets;
+});
+
+getUnAllocatedAssets().then(() => {
+  options.value = assetsData.value;
+});
+
+const onSubmitHandler = async (e) => {
   e.preventDefault();
-  isBtnLoading.value = true;
-  try {
-    const selectedV = formValues.assets;
-    const payload = {
-      userId: formValues.userId,
-      assetIds: selectedV.map((asset) => asset.id),
-    };
-    console.log("Payload:", payload);
-    const allocateAssetByIdRes = await allocateAssetbyId(payload);
-    console.log("allocateAssetByIdRes", allocateAssetByIdRes);
-  } catch (error) {
-    console.log("error", error);
-  } finally {
-    isBtnLoading.value = false;
-  }
-}
+
+  const selectedV = formValues.assets;
+  const payload = {
+    userId: formValues.userId,
+    assetIds: selectedV.map((asset) => asset.id),
+  };
+
+  allocateAssetById(payload).then(() => {
+    console.log("allocateAssetById", allocationData.value);
+
+    if (allocationData.value.success) {
+      toast.success(`${allocationData.value.message}`);
+    }
+  });
+};
 </script>
 
 <template>
-  <div v-if="isLoading">
+  <div v-if="isUserLoading || isAssetsLoading">
     <div class="d-flex justify-content-center mt-5">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
     </div>
   </div>
-  <div v-else-if="error">{{ error }}</div>
+  <div v-else-if="userError || assetsError">{{ error }}</div>
 
   <div v-else>
     <div class="container d-flex flex-column align-items-center row-gap-3 mb-5">
@@ -141,9 +129,13 @@ async function onSubmitHandler(e) {
             :taggable="false"
           />
         </div>
-        <button type="submit" class="btn btn-primary" :disabled="isBtnLoading">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          :disabled="isAllocationLoading"
+        >
           <span
-            v-if="isBtnLoading"
+            v-if="isAllocationLoading"
             class="spinner-border spinner-border-sm"
             role="status"
             aria-hidden="true"

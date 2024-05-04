@@ -1,6 +1,4 @@
 <script setup>
-import { getAllTicket } from "@/composables/ticketApis";
-import { ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import userData from "../mockData/userDetails.json";
 import { useGetTicketList } from "@/composables/useGetTicketList";
@@ -18,9 +16,9 @@ getTicketList({ userId: userData.userId }).then(() => {
   console.log("data", ticketList.value);
 });
 
-function viewDetails(ticketId) {
+const viewDetails = (ticketId) => {
   router.push({ name: "ticket-details", params: { id: ticketId } });
-}
+};
 
 const handleCreateTicket = () => {
   router.push({ name: "create-ticket" });

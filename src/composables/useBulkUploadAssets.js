@@ -2,15 +2,18 @@ import { readonly, ref } from "vue";
 import axios from "axios";
 import { apiList } from "@/utils/constants";
 
-export const useCreateTicket = () => {
+export const useBulkUploadAssets = () => {
   const data = ref(null);
   const isLoading = ref(false);
   const error = ref(null);
 
-  const createTicket = async (payload) => {
+  const bulkUploadAssets = async (payload) => {
     isLoading.value = true;
     try {
-      const response = await axios.post(`${apiList.createTicket}`, payload);
+      const response = await axios.post(
+        `${apiList.bulkAllocateAsset}`,
+        payload
+      );
       data.value = response.data;
     } catch (err) {
       console.log("error", error);
@@ -21,9 +24,9 @@ export const useCreateTicket = () => {
   };
 
   return {
-    data: readonly(data),
+    data,
     isLoading,
     error,
-    createTicket,
+    bulkUploadAssets,
   };
 };

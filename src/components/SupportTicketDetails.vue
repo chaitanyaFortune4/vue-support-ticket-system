@@ -10,6 +10,7 @@ import {
 } from "@/composables/ticketApis";
 import userDataJson from "../mockData/userDetails.json";
 import { useGetTicketDetails } from "@/composables/useGetTicketDetails";
+import { useUpdateTicket } from "@/composables/useUpdateTicket";
 
 const heading = "Ticket Details";
 
@@ -35,6 +36,12 @@ const formValues = reactive({
 });
 
 const { data, isLoading, error, getTicketDetails } = useGetTicketDetails();
+const {
+  data: updateTicketData,
+  isLoading: updateTicketIsLoading,
+  error: updateTicketError,
+  updateTicket,
+} = useUpdateTicket();
 
 getTicketDetails({ id: id, userId: userDataJson.userId }).then(() => {
   console.log("data", data.value);
@@ -55,7 +62,7 @@ getTicketDetails({ id: id, userId: userDataJson.userId }).then(() => {
   } = data.value);
 });
 
-async function onSubmitHandler(e) {
+const onSubmitHandler = async (e) => {
   e.preventDefault();
   isBtnLoadingWrapper.value = true; // disable both buttons
   console.log("event", e.submitter.name);
@@ -66,29 +73,25 @@ async function onSubmitHandler(e) {
     isCloseTicketBtnLoading.value = true;
   }
 
-  try {
-    const payload = {
-      id: id,
-      createdBy: formValues.createdBy,
-      userId: formValues.userId,
-      rootCause: formValues.rootCause,
-      approvalFor: formValues.approvalFor,
-      remarks: formValues.remarks,
-      closeTicket: isCloseTicketBtnLoading.value,
-    };
-    const submitTicketApprovalRes = await submitTicketApproval(payload); // Pass any required payload
+  const payload = {
+    id: id,
+    createdBy: formValues.createdBy,
+    userId: formValues.userId,
+    rootCause: formValues.rootCause,
+    approvalFor: formValues.approvalFor,
+    remarks: formValues.remarks,
+    closeTicket: isCloseTicketBtnLoading.value,
+  };
 
-    if (submitTicketApprovalRes.data.success) {
-      alert(`${submitTicketApprovalRes.data.message}`);
+  updateTicket(payload).then(() => {
+    if (updateTicketData.value.success) {
+      alert(`${updateTicketData.value.message}`);
+      isBtnLoadingWrapper.value = false;
+      isApprovalBtnLoading.value = false;
+      isCloseTicketBtnLoading.value = false;
     }
-  } catch (err) {
-    error.value = err.message || "Error submiting ticket";
-  } finally {
-    isBtnLoadingWrapper.value = false;
-    isApprovalBtnLoading.value = false;
-    isCloseTicketBtnLoading.value = false;
-  }
-}
+  });
+};
 </script>
 
 <template>

@@ -1,22 +1,14 @@
 <script setup>
-import useVuelidate from "@vuelidate/core";
-import { required } from "@vuelidate/validators";
-import { computed, reactive, ref, watch } from "vue";
-import categoriesJson from "../mockData/categories.json";
-import {
-  bulkAllocateAsset,
-  createTicket,
-  getAllAssets,
-  getAllUsers,
-} from "@/composables/ticketApis";
-import userDataJson from "../mockData/userDetails.json";
+import { ref } from "vue";
 import Papa from "papaparse";
+import { useBulkUploadAssets } from "@/composables/useBulkUploadAssets";
 
 const heading = "Upload Assets";
-const error = ref(null);
 const uploadedFileName = ref("");
 const fileData = ref([]);
-const isLoading = ref(false);
+const fileInputRef = ref(null);
+
+const { data, isLoading, error, bulkUploadAssets } = useBulkUploadAssets();
 
 const transformDataForAPI = (fileData) => {
   const groupedData = {};
@@ -36,31 +28,23 @@ const transformDataForAPI = (fileData) => {
 
 const handleBulkSubmit = async (e) => {
   e.preventDefault();
-  isLoading.value = true;
-  try {
-    const formattedData = transformDataForAPI(fileData.value);
-    console.log("Data to send to API:", formattedData);
-    const payload = {
-      allocationData: formattedData,
-    };
-    const bulkAllocateAssetRes = await bulkAllocateAsset(payload);
-    console.log("bulkAllocateAssetRes", bulkAllocateAssetRes);
-  } catch (error) {
-    console.log("error", error);
-  } finally {
-    isLoading.value = false;
-  }
+  const formattedData = transformDataForAPI(fileData.value);
+  console.log("Data to send to API:", formattedData);
+  const payload = {
+    allocationData: formattedData,
+  };
+
+  bulkUploadAssets(payload).then(() => {
+    console.log("bulkUploadAssets", data.value);
+  });
 };
 
-function handleBulkUpload() {
-  // Trigger file input click when "Upload CSV file" button is clicked
+const handleBulkUpload = () => {
   const fileInput = fileInputRef.value;
   if (fileInput) {
     fileInput.click();
   }
-}
-
-const fileInputRef = ref(null);
+};
 
 const handleFileChange = (event) => {
   const file = event.target.files[0];

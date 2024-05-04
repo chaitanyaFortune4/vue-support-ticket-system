@@ -21,7 +21,7 @@ export const useGetTicketList = () => {
   };
 
   return {
-    data,
+    data: readonly(data),
     isLoading,
     error,
     getTicketList,

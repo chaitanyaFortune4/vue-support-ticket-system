@@ -1,41 +1,14 @@
 <script setup>
-import useVuelidate from "@vuelidate/core";
-import { required } from "@vuelidate/validators";
-import { computed, reactive, ref, watch } from "vue";
-import categoriesJson from "../mockData/categories.json";
-
-import userDataJson from "../mockData/userDetails.json";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { getAllUsers } from "@/composables/ticketApis";
+import { useGetUserList } from "@/composables/useUserList";
 
 let router = useRouter();
 const heading = "Users List";
-const error = ref(null);
-const usersList = ref([]);
-const selectedUser = ref(null);
-const isLoading = ref(false);
 
-async function fetchData() {
-  isLoading.value = true;
-  try {
-    const getAllUsersRes = await getAllUsers();
-    console.log("getAllUsersRes", getAllUsersRes);
-    if (getAllUsersRes.data.success) {
-      usersList.value = getAllUsersRes.data.data;
-    } else {
-      error.value =
-        getAllUsersRes.data.message ||
-        getAllUsersRes.data.error ||
-        "Something went wrong, Please try again later";
-    }
-  } catch (error) {
-    error.value = error.message || "Error fetching user data";
-  } finally {
-    isLoading.value = false;
-  }
-}
+const { data: usersList, isLoading, error, getUserList } = useGetUserList();
 
-fetchData();
+getUserList();
 
 const handleViewUserDetails = (user) => {
   router.push({ name: "user-details", params: { id: user.id } });

@@ -3,13 +3,17 @@ import useVuelidate from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
 import { reactive, ref, watch } from "vue";
 import categoriesJson from "../mockData/categories.json";
-// import { createTicket } from "@/composables/ticketApis";
 import userDataJson from "../mockData/userDetails.json";
 import { useCreateTicket } from "@/composables/useCreateTicket";
 import { toast } from "vue3-toastify";
 
 const heading = "Support Ticket Form";
-const { data, isLoading, error, createTicket } = useCreateTicket();
+const {
+  data,
+  isLoading: isBtnLoading,
+  error,
+  createTicket,
+} = useCreateTicket();
 
 const initialFormState = {
   userId: userDataJson.userId,
@@ -67,12 +71,17 @@ watch(
   }
 );
 
-const onSubmitHandler = async (e) => {
+const onSubmitHandler = (e) => {
   e.preventDefault();
-  await createTicket(formValues);
-  console.log("data", data.value.success);
-  toast.success(`${data.value.message}`);
-  resetForm();
+  createTicket(formValues).then(() => {
+    console.log("data", data.value.success);
+    if (data.value.success) {
+      toast.success(`${data.value.message}`);
+    } else {
+      toast.error(`Oops! Something went wrong`);
+    }
+    resetForm();
+  });
 };
 </script>
 
@@ -167,9 +176,9 @@ const onSubmitHandler = async (e) => {
         <!-- <span class="font" v-if="v$.title.$error">Title is required</span> -->
       </div>
 
-      <button type="submit" class="btn btn-primary" :disabled="isLoading">
+      <button type="submit" class="btn btn-primary" :disabled="isBtnLoading">
         <span
-          v-if="isLoading"
+          v-if="isBtnLoading"
           class="spinner-border spinner-border-sm"
           role="status"
           aria-hidden="true"
