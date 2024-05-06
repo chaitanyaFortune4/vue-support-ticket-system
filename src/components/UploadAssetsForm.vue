@@ -26,19 +26,6 @@ const transformDataForAPI = (fileData) => {
   return Object.values(groupedData);
 };
 
-const handleBulkSubmit = async (e) => {
-  e.preventDefault();
-  const formattedData = transformDataForAPI(fileData.value);
-  console.log("Data to send to API:", formattedData);
-  const payload = {
-    allocationData: formattedData,
-  };
-
-  bulkUploadAssets(payload).then(() => {
-    console.log("bulkUploadAssets", data.value);
-  });
-};
-
 const handleBulkUpload = () => {
   const fileInput = fileInputRef.value;
   if (fileInput) {
@@ -66,6 +53,19 @@ const handleFileChange = (event) => {
       console.error("CSV parsing error:", error);
       // Handle parsing error
     },
+  });
+};
+
+const handleBulkSubmit = async (e) => {
+  e.preventDefault();
+  const formattedData = transformDataForAPI(fileData.value);
+  console.log("Data to send to API:", formattedData);
+  const payload = {
+    allocationData: formattedData,
+  };
+
+  bulkUploadAssets(payload).then(() => {
+    console.log("bulkUploadAssets", data.value);
   });
 };
 </script>

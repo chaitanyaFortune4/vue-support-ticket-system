@@ -11,6 +11,7 @@ import {
 import userDataJson from "../mockData/userDetails.json";
 import { useGetTicketDetails } from "@/composables/useGetTicketDetails";
 import { useUpdateTicket } from "@/composables/useUpdateTicket";
+import { toast } from "vue3-toastify";
 
 const heading = "Ticket Details";
 
@@ -85,7 +86,7 @@ const onSubmitHandler = async (e) => {
 
   updateTicket(payload).then(() => {
     if (updateTicketData.value.success) {
-      alert(`${updateTicketData.value.message}`);
+      toast.success(`${updateTicketData.value.message}`);
       isBtnLoadingWrapper.value = false;
       isApprovalBtnLoading.value = false;
       isCloseTicketBtnLoading.value = false;
